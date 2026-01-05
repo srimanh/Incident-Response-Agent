@@ -18,3 +18,11 @@
 - Implemented a deterministic mapping between incident types and specific policy files.
 - Built a `PolicyLoaderService` to reliably load policy text from the classpath.
 - Prepared the foundation for Retrieval-Augmented Generation (RAG) by ensuring the agent only uses approved data.
+
+
+## Hour 4 — Embeddings & Vector Search (RAG Core)
+
+- Implemented semantic retrieval using text embeddings (`text-embedding-3-small`).
+- Built an in-memory `VectorStoreService` to store and manage security policy embeddings.
+- Implemented **Cosine Similarity** from scratch to find the best semantic match for incidents.
+- Learned the power of RAG: "suspicious behavior" now correctly maps to "unauthorized access" regardless of literal keywords.
