@@ -1,0 +1,1 @@
+Data breaches require immediate legal and compliance notification. Perform a forensic audit to identify leaked PII and estimate the impact. Access controls and encryption protocols must be tightened immediately across all affected systems.
