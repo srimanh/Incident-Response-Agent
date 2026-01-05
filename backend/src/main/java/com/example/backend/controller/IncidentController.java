@@ -12,35 +12,48 @@ import java.util.Arrays;
 public class IncidentController {
 
         private final com.example.backend.service.ClassificationService classificationService;
-        private final com.example.backend.service.PolicyLoaderService policyLoaderService;
+        private final com.example.backend.service.EmbeddingService embeddingService;
+        private final com.example.backend.service.VectorStoreService vectorStoreService;
 
         public IncidentController(com.example.backend.service.ClassificationService classificationService,
-                        com.example.backend.service.PolicyLoaderService policyLoaderService) {
+                        com.example.backend.service.EmbeddingService embeddingService,
+                        com.example.backend.service.VectorStoreService vectorStoreService) {
                 this.classificationService = classificationService;
-                this.policyLoaderService = policyLoaderService;
+                this.embeddingService = embeddingService;
+                this.vectorStoreService = vectorStoreService;
         }
 
         @PostMapping("/analyze")
         public IncidentResponse analyzeIncident(@RequestBody IncidentRequest request) {
+                // Step 1: Classification
                 IncidentResponse.Classification classification = classificationService
                                 .classify(request.getIncidentDescription());
 
-                // Hour 3: Load policies based on classification
-                String policyText = policyLoaderService.loadPolicyForIncident(classification.getType());
-                System.out.println("Loaded policy for " + classification.getType() + ": " + policyText);
+                // Step 2: Semantic Retrieval (Hour 4)
+                float[] incidentVector = embeddingService.getEmbedding(request.getIncidentDescription());
+                com.example.backend.service.VectorStoreService.SearchResult match = vectorStoreService
+                                .findBestMatch(incidentVector);
+
+                String policyInfo = "No matching policy found.";
+                String policyId = "NONE";
+
+                if (match != null) {
+                        policyId = match.getPolicyName();
+                        policyInfo = match.getContent();
+                        System.out.println("Semantic match: " + policyId + " (Score: " + match.getScore() + ")");
+                }
 
                 return new IncidentResponse(
                                 classification,
                                 new IncidentResponse.Severity(
                                                 "HIGH",
                                                 "Potential account compromise in production environment."),
-                                Arrays.asList("POLICY-LOADED", classification.getType()),
+                                Arrays.asList("RAG-SEARCH", policyId),
                                 Arrays.asList(
                                                 "Reset affected user credentials",
                                                 "Review access logs for lateral movement",
                                                 "Enable MFA if not already active"),
-                                "This response is advisory. Policies used: "
-                                                + (policyText.length() > 50 ? policyText.substring(0, 50) + "..."
-                                                                : policyText));
+                                "Advisory grounded in: " + policyId + ". Score: "
+                                                + (match != null ? String.format("%.2f", match.getScore()) : "0"));
         }
 }
