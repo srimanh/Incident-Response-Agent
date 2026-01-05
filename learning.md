@@ -11,3 +11,10 @@
 - Designed a strict system prompt to force structured JSON output
 - Implemented safety-first logic: confidence threshold (0.6) to prevent speculation
 - Learned how to handle LLM response parsing and category mapping in Spring Boot
+
+## Hour 3 — Policy Dataset & Policy Loader
+
+- Structured a trusted security policy knowledge base in the resources folder.
+- Implemented a deterministic mapping between incident types and specific policy files.
+- Built a `PolicyLoaderService` to reliably load policy text from the classpath.
+- Prepared the foundation for Retrieval-Augmented Generation (RAG) by ensuring the agent only uses approved data.

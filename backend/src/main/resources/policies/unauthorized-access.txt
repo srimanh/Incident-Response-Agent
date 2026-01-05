@@ -1,0 +1,1 @@
+Unauthorized access incidents require immediate credential revocation, log review, and access scope evaluation. MFA should be enforced where possible. Analysts should check for lateral movement and unusual API access patterns.

@@ -1,0 +1,1 @@
+Phishing incidents require user account isolation, password resets, and investigation into malicious URL clicks. Scanned attachments should be dismantled in a sandbox. Communicate with the affected user to confirm the source of the phishing attempt.

@@ -12,9 +12,12 @@ import java.util.Arrays;
 public class IncidentController {
 
         private final com.example.backend.service.ClassificationService classificationService;
+        private final com.example.backend.service.PolicyLoaderService policyLoaderService;
 
-        public IncidentController(com.example.backend.service.ClassificationService classificationService) {
+        public IncidentController(com.example.backend.service.ClassificationService classificationService,
+                        com.example.backend.service.PolicyLoaderService policyLoaderService) {
                 this.classificationService = classificationService;
+                this.policyLoaderService = policyLoaderService;
         }
 
         @PostMapping("/analyze")
@@ -22,16 +25,22 @@ public class IncidentController {
                 IncidentResponse.Classification classification = classificationService
                                 .classify(request.getIncidentDescription());
 
+                // Hour 3: Load policies based on classification
+                String policyText = policyLoaderService.loadPolicyForIncident(classification.getType());
+                System.out.println("Loaded policy for " + classification.getType() + ": " + policyText);
+
                 return new IncidentResponse(
                                 classification,
                                 new IncidentResponse.Severity(
                                                 "HIGH",
                                                 "Potential account compromise in production environment."),
-                                Arrays.asList("NIST-IR-4", "OWASP-A2"),
+                                Arrays.asList("POLICY-LOADED", classification.getType()),
                                 Arrays.asList(
                                                 "Reset affected user credentials",
                                                 "Review access logs for lateral movement",
                                                 "Enable MFA if not already active"),
-                                "This response is advisory and based on retrieved security policies.");
+                                "This response is advisory. Policies used: "
+                                                + (policyText.length() > 50 ? policyText.substring(0, 50) + "..."
+                                                                : policyText));
         }
 }
