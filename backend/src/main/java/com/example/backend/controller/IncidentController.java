@@ -11,26 +11,27 @@ import java.util.Arrays;
 @CrossOrigin(origins = "*") // For local development
 public class IncidentController {
 
-    @PostMapping("/analyze")
-    public IncidentResponse analyzeIncident(@RequestBody IncidentRequest request) {
-        // Hardcoded stub as per Hour 1 requirement
-        return new IncidentResponse(
-                new IncidentResponse.Classification(
-                        "Unauthorized Access",
-                        0.86,
-                        "Login activity does not match known user behavior."
-                ),
-                new IncidentResponse.Severity(
-                        "HIGH",
-                        "Potential account compromise in production environment."
-                ),
-                Arrays.asList("NIST-IR-4", "OWASP-A2"),
-                Arrays.asList(
-                        "Reset affected user credentials",
-                        "Review access logs for lateral movement",
-                        "Enable MFA if not already active"
-                ),
-                "This response is advisory and based on retrieved security policies."
-        );
-    }
+        private final com.example.backend.service.ClassificationService classificationService;
+
+        public IncidentController(com.example.backend.service.ClassificationService classificationService) {
+                this.classificationService = classificationService;
+        }
+
+        @PostMapping("/analyze")
+        public IncidentResponse analyzeIncident(@RequestBody IncidentRequest request) {
+                IncidentResponse.Classification classification = classificationService
+                                .classify(request.getIncidentDescription());
+
+                return new IncidentResponse(
+                                classification,
+                                new IncidentResponse.Severity(
+                                                "HIGH",
+                                                "Potential account compromise in production environment."),
+                                Arrays.asList("NIST-IR-4", "OWASP-A2"),
+                                Arrays.asList(
+                                                "Reset affected user credentials",
+                                                "Review access logs for lateral movement",
+                                                "Enable MFA if not already active"),
+                                "This response is advisory and based on retrieved security policies.");
+        }
 }
