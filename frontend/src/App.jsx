@@ -107,8 +107,8 @@ function App() {
                 type="submit"
                 disabled={loading}
                 className={`w-full py-4 rounded-xl font-bold text-lg transition-all transform active:scale-95 ${loading
-                    ? 'bg-gray-700 cursor-not-allowed'
-                    : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 shadow-lg hover:shadow-blue-500/20'
+                  ? 'bg-gray-700 cursor-not-allowed'
+                  : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 shadow-lg hover:shadow-blue-500/20'
                   }`}
               >
                 {loading ? 'Analyzing...' : 'Analyze Incident'}
@@ -147,49 +147,64 @@ function App() {
             )}
 
             {response && (
-              <div className="space-y-6 animate-fadeIn">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Classification</p>
-                    <h3 className="text-2xl font-bold text-blue-400">{response.classification.type}</h3>
+              response.status === 'REFUSED' ? (
+                <div className="flex flex-col items-center justify-center text-center p-6 space-y-4 animate-fadeIn">
+                  <div className="w-16 h-16 bg-yellow-500/20 text-yellow-500 rounded-full flex items-center justify-center text-2xl border border-yellow-500/50">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
                   </div>
-                  <div className="text-right">
-                    <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Severity</p>
-                    <span className={`px-3 py-1 rounded-full text-xs font-bold ${response.severity.level === 'HIGH' ? 'bg-red-500/20 text-red-500 border border-red-500/50' : 'bg-yellow-500/20 text-yellow-500 border border-yellow-500/50'
-                      }`}>
-                      {response.severity.level}
-                    </span>
+                  <h3 className="text-xl font-bold text-gray-200">Safe Refusal</h3>
+                  <div className="bg-gray-900/50 border border-gray-700 p-4 rounded-xl max-w-md">
+                    <p className="text-gray-400 mb-2">{response.reason}</p>
+                    <p className="text-sm text-blue-400 font-medium">Suggestion: {response.suggestion}</p>
                   </div>
                 </div>
-
-                <div>
-                  <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Policy References</p>
-                  <div className="flex gap-2">
-                    {response.policyReferences.map(policy => (
-                      <span key={policy} className="bg-gray-700 px-2 py-1 rounded text-xs text-gray-300 font-mono">
-                        {policy}
+              ) : (
+                <div className="space-y-6 animate-fadeIn">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Classification</p>
+                      <h3 className="text-2xl font-bold text-blue-400">{response.classification?.type || 'Unknown'}</h3>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Severity</p>
+                      <span className={`px-3 py-1 rounded-full text-xs font-bold ${response.severity?.level === 'HIGH' ? 'bg-red-500/20 text-red-500 border border-red-500/50' : 'bg-yellow-500/20 text-yellow-500 border border-yellow-500/50'
+                        }`}>
+                        {response.severity?.level || 'UNKNOWN'}
                       </span>
-                    ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Policy References</p>
+                    <div className="flex gap-2">
+                      {response.policyReferences?.map(policy => (
+                        <span key={policy} className="bg-gray-700 px-2 py-1 rounded text-xs text-gray-300 font-mono">
+                          {policy}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="bg-gray-900/50 p-4 rounded-xl border border-gray-700">
+                    <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Recommended Actions</p>
+                    <ul className="space-y-2">
+                      {response.recommendedActions?.map((action, i) => (
+                        <li key={action} className="text-sm text-gray-300 flex items-start">
+                          <span className="text-blue-500 mr-2">•</span>
+                          {action}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="border-t border-gray-700 pt-4">
+                    <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Agent Notes</p>
+                    <p className="text-sm text-gray-400 italic">"{response.notes}"</p>
                   </div>
                 </div>
-
-                <div className="bg-gray-900/50 p-4 rounded-xl border border-gray-700">
-                  <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Recommended Actions</p>
-                  <ul className="space-y-2">
-                    {response.recommendedActions.map((action, i) => (
-                      <li key={action} className="text-sm text-gray-300 flex items-start">
-                        <span className="text-blue-500 mr-2">•</span>
-                        {action}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div className="border-t border-gray-700 pt-4">
-                  <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Agent Notes</p>
-                  <p className="text-sm text-gray-400 italic">"{response.notes}"</p>
-                </div>
-              </div>
+              )
             )}
           </section>
         </div>
