@@ -33,3 +33,11 @@
 - Learned how refusal improves trust in AI systems
 - Prevented AI responses when policy confidence is low
 - Treated safety as a core system feature
+
+
+## Hour 6 — Severity & Impact Analysis
+
+- Designed AI-driven severity assessment for security incidents
+- Learned how to translate technical issues into risk levels
+- Implemented structured and explainable severity outputs
+- Integrated severity analysis into a multi-stage agent pipeline
