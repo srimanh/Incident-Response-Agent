@@ -14,13 +14,16 @@ public class IncidentController {
         private final com.example.backend.service.ClassificationService classificationService;
         private final com.example.backend.service.EmbeddingService embeddingService;
         private final com.example.backend.service.VectorStoreService vectorStoreService;
+        private final com.example.backend.service.SeverityAnalysisService severityAnalysisService;
 
         public IncidentController(com.example.backend.service.ClassificationService classificationService,
                         com.example.backend.service.EmbeddingService embeddingService,
-                        com.example.backend.service.VectorStoreService vectorStoreService) {
+                        com.example.backend.service.VectorStoreService vectorStoreService,
+                        com.example.backend.service.SeverityAnalysisService severityAnalysisService) {
                 this.classificationService = classificationService;
                 this.embeddingService = embeddingService;
                 this.vectorStoreService = vectorStoreService;
+                this.severityAnalysisService = severityAnalysisService;
         }
 
         // Safety Threshold (Hour 5)
@@ -35,6 +38,7 @@ public class IncidentController {
 
                 double score = (match != null) ? match.getScore() : 0.0;
                 String policyId = (match != null) ? match.getPolicyName() : "NONE";
+                String policyInfo = (match != null) ? match.getContent() : "No matching policy found.";
 
                 // Step 2: Safety Gating
                 if (score < SIMILARITY_THRESHOLD) {
@@ -51,13 +55,16 @@ public class IncidentController {
 
                 System.out.println("GATE: PASSED | Incident Type: " + classification.getType() + " | Score: " + score);
 
-                String policyInfo = (match != null) ? match.getContent() : "No matching policy found.";
+                // Step 4: Severity Analysis (Hour 6)
+                IncidentResponse.Severity severity = severityAnalysisService.analyze(
+                                request.getIncidentDescription(),
+                                classification.getType(),
+                                request.getEnvironment(),
+                                policyInfo);
 
                 return new IncidentResponse(
                                 classification,
-                                new IncidentResponse.Severity(
-                                                "HIGH",
-                                                "Potential account compromise in production environment."),
+                                severity,
                                 Arrays.asList("RAG-SEARCH", policyId),
                                 Arrays.asList(
                                                 "Reset affected user credentials",
