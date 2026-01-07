@@ -26,3 +26,10 @@
 - Built an in-memory `VectorStoreService` to store and manage security policy embeddings.
 - Implemented **Cosine Similarity** from scratch to find the best semantic match for incidents.
 - Learned the power of RAG: "suspicious behavior" now correctly maps to "unauthorized access" regardless of literal keywords.
+
+## Hour 5 — Safety Gating & Hallucination Prevention
+
+- Implemented similarity-based gating for RAG retrieval
+- Learned how refusal improves trust in AI systems
+- Prevented AI responses when policy confidence is low
+- Treated safety as a core system feature

@@ -23,25 +23,35 @@ public class IncidentController {
                 this.vectorStoreService = vectorStoreService;
         }
 
+        // Safety Threshold (Hour 5)
+        private static final double SIMILARITY_THRESHOLD = 0.75;
+
         @PostMapping("/analyze")
         public IncidentResponse analyzeIncident(@RequestBody IncidentRequest request) {
-                // Step 1: Classification
-                IncidentResponse.Classification classification = classificationService
-                                .classify(request.getIncidentDescription());
-
-                // Step 2: Semantic Retrieval (Hour 4)
+                // Step 1: Semantic Retrieval (Moved before Classification for safety gating)
                 float[] incidentVector = embeddingService.getEmbedding(request.getIncidentDescription());
                 com.example.backend.service.VectorStoreService.SearchResult match = vectorStoreService
                                 .findBestMatch(incidentVector);
 
-                String policyInfo = "No matching policy found.";
-                String policyId = "NONE";
+                double score = (match != null) ? match.getScore() : 0.0;
+                String policyId = (match != null) ? match.getPolicyName() : "NONE";
 
-                if (match != null) {
-                        policyId = match.getPolicyName();
-                        policyInfo = match.getContent();
-                        System.out.println("Semantic match: " + policyId + " (Score: " + match.getScore() + ")");
+                // Step 2: Safety Gating
+                if (score < SIMILARITY_THRESHOLD) {
+                        System.out.println("GATE: FAILED | Incident Type: SKIPPED | Score: " + score
+                                        + " | Action: REFUSED");
+                        return IncidentResponse.createRefusal(
+                                        "No sufficiently relevant security policy was found for this incident.",
+                                        "Please provide more context or consult a security professional.");
                 }
+
+                // Step 3: Classification (Only if gate passes)
+                IncidentResponse.Classification classification = classificationService
+                                .classify(request.getIncidentDescription());
+
+                System.out.println("GATE: PASSED | Incident Type: " + classification.getType() + " | Score: " + score);
+
+                String policyInfo = (match != null) ? match.getContent() : "No matching policy found.";
 
                 return new IncidentResponse(
                                 classification,
@@ -53,7 +63,6 @@ public class IncidentController {
                                                 "Reset affected user credentials",
                                                 "Review access logs for lateral movement",
                                                 "Enable MFA if not already active"),
-                                "Advisory grounded in: " + policyId + ". Score: "
-                                                + (match != null ? String.format("%.2f", match.getScore()) : "0"));
+                                "Advisory grounded in: " + policyId + ". Score: " + String.format("%.2f", score));
         }
 }
