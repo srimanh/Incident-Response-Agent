@@ -15,15 +15,18 @@ public class IncidentController {
         private final com.example.backend.service.EmbeddingService embeddingService;
         private final com.example.backend.service.VectorStoreService vectorStoreService;
         private final com.example.backend.service.SeverityAnalysisService severityAnalysisService;
+        private final com.example.backend.service.ResponsePlaybookService responsePlaybookService;
 
         public IncidentController(com.example.backend.service.ClassificationService classificationService,
                         com.example.backend.service.EmbeddingService embeddingService,
                         com.example.backend.service.VectorStoreService vectorStoreService,
-                        com.example.backend.service.SeverityAnalysisService severityAnalysisService) {
+                        com.example.backend.service.SeverityAnalysisService severityAnalysisService,
+                        com.example.backend.service.ResponsePlaybookService responsePlaybookService) {
                 this.classificationService = classificationService;
                 this.embeddingService = embeddingService;
                 this.vectorStoreService = vectorStoreService;
                 this.severityAnalysisService = severityAnalysisService;
+                this.responsePlaybookService = responsePlaybookService;
         }
 
         // Safety Threshold (Hour 5)
@@ -62,14 +65,18 @@ public class IncidentController {
                                 request.getEnvironment(),
                                 policyInfo);
 
+                // Step 5: Response Playbook (Hour 7)
+                java.util.List<String> recommendedActions = responsePlaybookService.generatePlaybook(
+                                request.getIncidentDescription(),
+                                classification.getType(),
+                                severity.getLevel(),
+                                policyInfo);
+
                 return new IncidentResponse(
                                 classification,
                                 severity,
                                 Arrays.asList("RAG-SEARCH", policyId),
-                                Arrays.asList(
-                                                "Reset affected user credentials",
-                                                "Review access logs for lateral movement",
-                                                "Enable MFA if not already active"),
+                                recommendedActions,
                                 "Advisory grounded in: " + policyId + ". Score: " + String.format("%.2f", score));
         }
 }
